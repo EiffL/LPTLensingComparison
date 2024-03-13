@@ -92,14 +92,34 @@ def model():
   # Sampling initial conditions
   initial_conditions = numpyro.sample('initial_conditions', dist.Normal(jnp.zeros(box_shape),
                                                                         jnp.ones(box_shape)))
+
+  Omega_b = 0.049
+  Omega_c = numpyro.sample("omega_c", dist.Uniform(0.1, 0.7))
+  sigma_8 = numpyro.sample("sigma_8", dist.Uniform(0.5, 1.6))
+  h       = 0.677
+  n_s     = 0.9624
+  w0      = -1
+  cosmo   = jc.Cosmology(Omega_c = Omega_c,
+                         sigma8  = sigma_8,
+                         Omega_b = Omega_b,
+                         Omega_k = 0.,
+                         h   = h,
+                         n_s = n_s,
+                         w0  = w0,
+                         wa  = 0.)
+
   # Generate random convergence maps
   convergence_maps, _ = lensing_model(cosmo, nz_shear, initial_conditions)
+
+  numpyro.deterministic('noiseless_convergence_0', convergence_maps[0])
 
   # Apply noise to the maps (this defines the likelihood)
   observed_maps = [numpyro.sample('kappa_%d'%i,
                                   dist.Normal(k, sigma_e/jnp.sqrt(nz_shear[i].gals_per_arcmin2*(field_size*60/field_npix)**2)))
                    for i,k in enumerate(convergence_maps)]
 
+  numpyro.deterministic('kappa_0', observed_maps[0])
+  
   return observed_maps
 
 
