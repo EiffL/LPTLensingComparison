@@ -49,12 +49,12 @@ nbins    = len(nz_shear)
 
 Omega_b = 0.049
 Omega_c = 0.315 - Omega_b
-sigma_8 = 0.8
+sigma8  = 0.8
 h       = 0.677
 n_s     = 0.9624
 w0      = -1
 cosmo   = jc.Cosmology(Omega_c = Omega_c,
-                       sigma8  = sigma_8,
+                       sigma8  = sigma8,
                        Omega_b = Omega_b,
                        Omega_k = 0.,
                        h   = h,
@@ -95,12 +95,12 @@ def model():
 
   Omega_b = 0.049
   Omega_c = numpyro.sample("omega_c", dist.Uniform(0.1, 0.7))
-  sigma_8 = numpyro.sample("sigma_8", dist.Uniform(0.5, 1.6))
+  sigma8  = numpyro.sample("sigma8", dist.Uniform(0.5, 1.6))
   h       = 0.677
   n_s     = 0.9624
   w0      = -1
   cosmo   = jc.Cosmology(Omega_c = Omega_c,
-                         sigma8  = sigma_8,
+                         sigma8  = sigma8,
                          Omega_b = Omega_b,
                          Omega_k = 0.,
                          h   = h,
@@ -118,7 +118,7 @@ def model():
                                   dist.Normal(k, sigma_e/jnp.sqrt(nz_shear[i].gals_per_arcmin2*(field_size*60/field_npix)**2)))
                    for i,k in enumerate(convergence_maps)]
 
-  numpyro.deterministic('kappa_0', observed_maps[0])
+  numpyro.deterministic('observed_maps_0', observed_maps[0])
   
   return observed_maps
 
@@ -139,7 +139,7 @@ observed_model = condition(model, {'kappa_0': model_trace['kappa_0']['value']
 nuts_kernel = numpyro.infer.NUTS(
     model=observed_model,
     init_strategy=partial(numpyro.infer.init_to_value, values={'omega_c': cosmo.Omega_c,
-                                                               'sigma8': cosmo.sigma8,
+                                                               'sigma8' :cosmo.sigma8,
                                                                'initial_conditions': model_trace['initial_conditions']['value']}),
     max_tree_depth=3,
     step_size=0.05)
