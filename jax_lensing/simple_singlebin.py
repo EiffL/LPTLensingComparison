@@ -123,13 +123,20 @@ def model():
   return observed_maps
 
 
-model_tracer = numpyro.handlers.trace(numpyro.handlers.seed(model, jax.random.PRNGKey(1234)))
+# Create a random realization of a map with fixed cosmology
+gen_model      = condition(model, { 
+                                   "omega_c": Omega_c,
+                                   "sigma8": sigma8,
+                                   })
+
+model_tracer = numpyro.handlers.trace(numpyro.handlers.seed(gen_model, jax.random.PRNGKey(1234)))
 model_trace = model_tracer.get_trace()
 
 from functools import partial
 
 # Let's condition the model on the observed maps
-observed_model = condition(model, {'kappa_0': model_trace['kappa_0']['value']
+observed_model = condition(model, {'kappa_0': model_trace['kappa_0']['value'],
+
                                    #'kappa_1': model_trace['kappa_1']['value'],
                                    #'kappa_2': model_trace['kappa_2']['value'],
                                    #'kappa_3': model_trace['kappa_3']['value']
@@ -139,7 +146,7 @@ observed_model = condition(model, {'kappa_0': model_trace['kappa_0']['value']
 nuts_kernel = numpyro.infer.NUTS(
     model=observed_model,
     init_strategy=partial(numpyro.infer.init_to_value, values={'omega_c': cosmo.Omega_c,
-                                                               'sigma8' :cosmo.sigma8,
+                                                               'sigma8' : cosmo.sigma8,
                                                                'initial_conditions': model_trace['initial_conditions']['value']}),
     max_tree_depth=3,
     step_size=0.05)
