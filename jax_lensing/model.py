@@ -186,9 +186,10 @@ def make_full_field_model(field_size, field_npix, box_shape, box_size, method='l
       # Compute the scale factor that corresponds to each slice of the volume
       r_center = (jnp.arange(box_shape[-1]) + 0.5)*box_size[-1]/box_shape[-1]
       a_center = jc.background.a_of_chi(cosmo, r_center)
+      a        = a_center
 
       # Compute displacement and paint positions of particles onto lightcone
-      eps,_     = lpt_lightcone(cosmo, lin_field, particles, a, box_shape)
+      eps,_     = lpt_lightcone(cosmo, lin_field, particles, a_center, box_shape)
       lightcone = cic_paint(jnp.zeros(box_shape),  particles+eps) 
       
       # Apply de-cic filter to recover more signal on small scales
