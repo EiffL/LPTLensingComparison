@@ -33,14 +33,19 @@ def linear_field(mesh_shape, box_size, pk, field):
   field = jnp.fft.irfftn(field)
   return field
 
-def lpt_lightcone(cosmo, initial_conditions, positions, a, mesh_shape, box_size):
+def lpt_lightcone(cosmo, initial_conditions, positions, mesh_shape, box_size):
     """
     Computes first order LPT lightcone
     """
+
+    # Compute the scale factor that corresponds to each slice of the volume
+    r = (jnp.arange(mesh_shape[-1]) + 0.5)*box_size[-1]/mesh_shape[-1]
+    a = jc.background.a_of_chi(cosmo, r)
+
     initial_force = pm_forces(positions, delta=initial_conditions).reshape(mesh_shape+[3])
     a = jnp.atleast_1d(a)
     dx = growth_factor(cosmo, a).reshape([1,1,-1,1]) * initial_force
-    dx.reshape([-1,3])
+    dx = dx.reshape([-1,3])
 
     # Paint the particles on a new mesh
     lightcone = cic_paint(jnp.zeros(mesh_shape),  positions.reshape([-1,3])+dx)
@@ -49,9 +54,9 @@ def lpt_lightcone(cosmo, initial_conditions, positions, a, mesh_shape, box_size)
 
     dx = box_size[0] / mesh_shape[0]
     dz = box_size[-1] / mesh_shape[-1]
-    return lightcone, a, dx, dz
+    return lightcone, r, a, dx, dz
 
-def pm_lightcone(cosmo, initial_conditions, positions, a_init, mesh_shape, box_size,
+def pm_lightcone(cosmo, initial_conditions, positions, mesh_shape, box_size,
                  density_plane_width, density_plane_npix, density_plane_smoothing):
   """ Computes lensplane lightcone using a PM simulation
   """
@@ -87,14 +92,16 @@ def pm_lightcone(cosmo, initial_conditions, positions, a_init, mesh_shape, box_s
                                      (ny / density_plane_npix) * w)
     return density_plane
 
-  # LPT initilization 
-  dx, p, _ = lpt(cosmo, initial_conditions, positions, a_init)
-
   # Define parameters of the simulation
   n_lens    = int(box_size[-1] // density_plane_width)
   r         = jnp.linspace(0., box_size[-1], n_lens + 1)
   r_center  = 0.5 * (r[1:] + r[:-1])
   a_center  = jc.background.a_of_chi(cosmo, r_center)
+
+  a_init = a_center[-1]
+
+  # LPT initilization 
+  dx, p, _ = lpt(cosmo, initial_conditions, positions, a_init)
 
   # Define the ODE solver
   ode_fn = make_ode_fn(mesh_shape)
@@ -115,9 +122,8 @@ def pm_lightcone(cosmo, initial_conditions, positions, a_init, mesh_shape, box_s
   lightcone = jax.vmap(lambda x: gaussian_smoothing(x, density_plane_smoothing / dx ))(solution.ys)
   # Reorder the ligtcone to have the first lens plane at the end
   lightcone = jnp.transpose(lightcone[::-1],axes=(1, 2, 0))
-  a = solution.ts[::-1]
 
-  return lightcone, a, dx, dz
+  return lightcone, r_center[::-1], a_center[::-1], dx, dz
 
 def convergence_Born(cosmo,
                      density_planes,
@@ -192,10 +198,10 @@ def make_full_field_model(field_size, field_npix,
     
     # Generate a lightcone with either a PM ot LPT simulation
     if pm:
-      lightcone, a, dx, dz  = pm_lightcone(cosmo, lin_field, particles, a[-1], box_shape, box_size,
+      lightcone, r, a, dx, dz  = pm_lightcone(cosmo, lin_field, particles, a[-1], box_shape, box_size,
                                            pm_density_plane_width, pm_density_plane_npix, pm_density_plane_smoothing)
     else:
-      lightcone, a, dx, dz  = lpt_lightcone(cosmo, lin_field, particles, a, box_shape, box_size)
+      lightcone, r, a, dx, dz  = lpt_lightcone(cosmo, lin_field, particles, a, box_shape, box_size)
 
     # Defining the coordinate grid for lensing map
     xgrid, ygrid = np.meshgrid(np.linspace(0, field_size, box_shape[0], endpoint=False), # range of X coordinates
