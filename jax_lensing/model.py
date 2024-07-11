@@ -101,7 +101,7 @@ def pm_lightcone(cosmo, initial_conditions, positions, a_init, mesh_shape, box_s
   solver    = Dopri5()
   saveat    = SaveAt(ts=a_center[::-1], fn=density_plane_fn)
   
-  solution  = diffeqsolve(term, solver, t0=0.01, t1=1., dt0=0.05,
+  solution  = diffeqsolve(term, solver, t0=a_init, t1=1., dt0=0.05,
                           y0        = jnp.stack([positions+dx, p], axis=0),
                           args      = (cosmo, ),
                           saveat    = saveat,
@@ -191,7 +191,7 @@ def make_full_field_model(field_size, field_npix,
     
     # Generate a lightcone with either a PM ot LPT simulation
     if pm:
-      lightcone, a, dx, dz  = pm_lightcone(cosmo, lin_field, particles, a, box_shape, box_size,
+      lightcone, a, dx, dz  = pm_lightcone(cosmo, lin_field, particles, a[-1], box_shape, box_size,
                                            pm_density_plane_width, pm_density_plane_npix, pm_density_plane_smoothing)
     else:
       lightcone, a, dx, dz  = lpt_lightcone(cosmo, lin_field, particles, a, box_shape, box_size)
