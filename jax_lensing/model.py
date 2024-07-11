@@ -43,7 +43,7 @@ def lpt_lightcone(cosmo, initial_conditions, positions, a, mesh_shape, box_size)
     dx.reshape([-1,3])
 
     # Paint the particles on a new mesh
-    lightcone = cic_paint(jnp.zeros(mesh_shape),  positions+dx)
+    lightcone = cic_paint(jnp.zeros(mesh_shape),  positions.reshape([-1,3])+dx)
     # Apply de-cic filter to recover more signal on small scales
     lightcone = compensate_cic(lightcone)
 
