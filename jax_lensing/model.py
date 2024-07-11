@@ -98,7 +98,8 @@ def pm_lightcone(cosmo, initial_conditions, positions, mesh_shape, box_size,
   r_center  = 0.5 * (r[1:] + r[:-1])
   a_center  = jc.background.a_of_chi(cosmo, r_center)
 
-  a_init = a_center[-1]
+  # Initializing at slightly lower redshift
+  a_init = 0.01
 
   # LPT initilization 
   dx, p, _ = lpt(cosmo, initial_conditions, positions, a_init)
