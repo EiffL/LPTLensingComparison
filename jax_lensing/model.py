@@ -97,7 +97,8 @@ def pm_lightcone(cosmo, initial_conditions, positions, a_init, mesh_shape, box_s
   a_center  = jc.background.a_of_chi(cosmo, r_center)
 
   # Define the ODE solver
-  term      = ODETerm(lambda a, state, args: make_ode_fn(mesh_shape)(state, a, args[0]))
+  ode_fn = make_ode_fn(mesh_shape)
+  term      = ODETerm(lambda a, state, args: ode_fn(state, a, args[0]))
   solver    = Dopri5()
   saveat    = SaveAt(ts=a_center[::-1], fn=density_plane_fn)
   
