@@ -59,10 +59,10 @@ def pm_lightcone(cosmo, initial_conditions, positions, a_init, mesh_shape, box_s
   def density_plane_fn(t, y, args):
     """ Callback function to paint density plane
     """
-    cosmo, _ , density_plane_width, density_plane_npix  = args
+    cosmo, = args
     positions = y[0]
     nx, ny, nz = mesh_shape
-
+    cosmo._workspace = {}
     # Converts time t to comoving distance in voxel coordinates
     w = density_plane_width / box_size[2] * mesh_shape[2]
     center = jc.background.radial_comoving_distance(cosmo, t) / box_size[2] * mesh_shape[2]
@@ -98,7 +98,7 @@ def pm_lightcone(cosmo, initial_conditions, positions, a_init, mesh_shape, box_s
 
   # Define the ODE solver
   ode_fn = make_ode_fn(mesh_shape)
-  term      = ODETerm(lambda a, state, args: ode_fn(state, a, args[0]))
+  term      = ODETerm(lambda a, state, args: jnp.stack(ode_fn(state, a , args[0]), 0))
   solver    = Dopri5()
   saveat    = SaveAt(ts=a_center[::-1], fn=density_plane_fn)
   
