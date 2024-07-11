@@ -194,7 +194,7 @@ def make_full_field_model(field_size, field_npix,
       lightcone, a, dx, dz  = pm_lightcone(cosmo, lin_field, particles, a, box_shape, box_size,
                                            pm_density_plane_width, pm_density_plane_npix, pm_density_plane_smoothing)
     else:
-      lightcone, a, dx, dz  = lpt_lightcone(cosmo, lin_field, particles, a, box_shape)
+      lightcone, a, dx, dz  = lpt_lightcone(cosmo, lin_field, particles, a, box_shape, box_size)
 
     # Defining the coordinate grid for lensing map
     xgrid, ygrid = np.meshgrid(np.linspace(0, field_size, box_shape[0], endpoint=False), # range of X coordinates
