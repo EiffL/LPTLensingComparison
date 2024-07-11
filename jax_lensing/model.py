@@ -97,13 +97,13 @@ def pm_lightcone(cosmo, initial_conditions, positions, a_init, mesh_shape, box_s
   a_center  = jc.background.a_of_chi(cosmo, r_center)
 
   # Define the ODE solver
-  term      = ODETerm(lambda a, state, args: make_ode_fn(mesh_shape)(state, a, args))
+  term      = ODETerm(lambda a, state, args: make_ode_fn(mesh_shape)(state, a, args[0]))
   solver    = Dopri5()
   saveat    = SaveAt(ts=a_center[::-1], fn=density_plane_fn)
   
   solution  = diffeqsolve(term, solver, t0=a_init, t1=1., dt0=0.05,
                           y0        = jnp.stack([positions+dx, p], axis=0),
-                          args      = cosmo,
+                          args      = (cosmo,),
                           saveat    = saveat,
                           adjoint   = diffrax.RecursiveCheckpointAdjoint(5),
                           max_steps = 32)
