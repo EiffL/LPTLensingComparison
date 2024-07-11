@@ -103,7 +103,7 @@ def pm_lightcone(cosmo, initial_conditions, positions, a_init, mesh_shape, box_s
   
   solution  = diffeqsolve(term, solver, t0=a_init, t1=1., dt0=0.05,
                           y0        = jnp.stack([positions+dx, p], axis=0),
-                          args      = (cosmo, ),
+                          args      = cosmo,
                           saveat    = saveat,
                           adjoint   = diffrax.RecursiveCheckpointAdjoint(5),
                           max_steps = 32)
