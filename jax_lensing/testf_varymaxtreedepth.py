@@ -19,6 +19,7 @@ parser.add_argument('method'      , default=None, type=str, help='')
 parser.add_argument('run'         , default=None, type=int, help='')
 parser.add_argument('resume_state', default=None, type=int, help='')
 parser.add_argument('maxtreedepth', default=None, type=int, help='')
+parser.add_argument('lowpass'     , default=None, type=int, help='')
 parser.add_argument('--trace'     , default=False, dest='trace',action='store_true')
 parser.add_argument('--warmup'     , default=False, dest='warmup',action='store_true')
 args         = parser.parse_args()
@@ -28,6 +29,8 @@ method       = args.method
 trace        = args.trace
 warmup       = args.warmup
 maxtreedepth = args.maxtreedepth
+lowpass      = args.lowpass
+ 
 
 
 def filter(ngrid, reso_rad, cut_off):
@@ -120,8 +123,6 @@ field_npix = 50     # number of pixels per side
 pixel_size = field_size * 60 / field_npix
 print("Pixel size in arcmin: ", pixel_size)
 
-
-lowpass = 500
 reso    = (field_size/field_npix)*60 # resolution in arcmin. 
 ang     = 0.0166667*(reso)*50  #angle of the fullfield in deg
 
@@ -254,7 +255,7 @@ if trace is False:
                                                                                          
                                                                                                             
                 )
-    sys.exit()
+    
 
 else:
     model_tracer = numpyro.handlers.trace(numpyro.handlers.seed(gen_model, run ))
@@ -317,16 +318,16 @@ else:
                                                                                               #'w_0'    : -1,
                                                                                               'initial_conditions': model_trace['initial_conditions']['value']}),
                                  max_tree_depth = maxtreedepth,
-                                 step_size      = 4.0e-3,
+                                 step_size      = 2.0e-2,
                                  #inverse_mass_matrix = mass_matrix
                                 )
 
     mcmc = numpyro.infer.MCMC(
                           nuts_kernel, 
                           num_warmup   = 0,
-                          num_samples  = 100,
+                          num_samples  = 500,
                           num_chains   = 1,
-                          thinning     = 1,
+                          thinning     = 10,
                           progress_bar = True
                          )
 
