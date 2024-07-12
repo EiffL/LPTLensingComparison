@@ -4,8 +4,12 @@ setup(
     name='jax_lensing',
     version='1.0',
     description='A small package for comparing full-field lensing constraints using JAX',
-    author='Eiffl, Justinezgh',
+    author='Eiffl, Justinezgh, yomori, chihway',
     packages=['jax_lensing'],
+    package_dir={"jax_lensing": "jax_lensing"},
+    package_data={
+        "jax_lensing": ["nz/*.npy"],
+    },
     install_requires=[
         'jax-cosmo',
         'numpyro',
