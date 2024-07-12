@@ -63,15 +63,14 @@ def filter(ngrid, reso_rad, cut_off):
 
 
 dir  = '/pscratch/sd/y/yomori/lssty10/maxtreedepth%d/'%maxtreedepth
-name = '%s_threebin_flatprior_run5_lssty10_nowarmup'%method
+name = '%s_paperrun_flatprior_run1_lssty1'%method
 Path(dir).mkdir(parents=True, exist_ok=True)
 
 
-sigma_e = 0.26
-#ngal     = jnp.array([5.4, 5.4, 5.4, 5.4, 5.4])
-ngal     = jnp.array([1.7, 1.7, 1.7, 1.7, 1.7])
+sigma_e  = 0.26
+ngal     = jnp.array([2.00,2.00,2.00,2.00,2.00])
 
-tmp      = jnp.load('nzs_lsst.npy'); print(tmp.shape)
+tmp      = jnp.load('nz/nz_lssty1_srd.npy'); print(tmp.shape)
 zz       = tmp[:,0]
 nz1      = tmp[:,1]
 nz2      = tmp[:,2]
@@ -163,7 +162,7 @@ def model():
   Omega_b = 0.0492 #numpyro.sample("omega_b", dist.Normal(0.0492, 0.006))
   Omega_c = numpyro.sample("omega_c", dist.Uniform(0.05, 1.0))
   sigma8  = numpyro.sample("sigma8" , dist.Uniform(0.1, 2.0))
-  h       = numpyro.sample("h_0"    , dist.Normal(0.6727, 0.063))
+  h       = 0.6726 #numpyro.sample("h_0"    , dist.Normal(0.6727, 0.063))
   w0      = -1     #numpyro.sample("w_0"    , dist.TruncatedNormal(-1.0, 0.9, low=-2.0, high=-0.3)) #-1
   n_s     = 0.9645 #0.9624
 
@@ -233,7 +232,7 @@ def model():
 gen_model     = condition(model, {"omega_c": 0.2664,
                                   #"omega_b": 0.0492,
                                   "sigma8" : 0.831,
-                                  "h_0"    : 0.6727
+                                  #"h_0"    : 0.6727
                                  })
 
 if trace is False:
@@ -286,7 +285,7 @@ if warmup:
                                  init_strategy = partial(numpyro.infer.init_to_value, values={'omega_c': 0.2664,
                                                                                               'sigma8' : 0.831,
                                                                                               #'omega_b': 0.0492,
-                                                                                              'h_0'    : 0.6727,
+                                                                                              #'h_0'    : 0.6727,
                                                                                               #'w_0'    : -1,
                                                                                               'initial_conditions': model_trace['initial_conditions']['value']}),
                                  max_tree_depth = maxtreedepth,
@@ -314,7 +313,7 @@ else:
                                  init_strategy = partial(numpyro.infer.init_to_value, values={'omega_c': 0.2664,
                                                                                               'sigma8' : 0.831,
                                                                                               #'omega_b': 0.0492,
-                                                                                              'h_0'    : 0.6727,
+                                                                                              #'h_0'    : 0.6727,
                                                                                               #'w_0'    : -1,
                                                                                               'initial_conditions': model_trace['initial_conditions']['value']}),
                                  max_tree_depth = maxtreedepth,
